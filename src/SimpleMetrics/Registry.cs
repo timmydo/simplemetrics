@@ -9,9 +9,14 @@ namespace SimpleMetrics
 
         private readonly ConcurrentDictionary<string, Summary> summaries = new ConcurrentDictionary<string, Summary>();
 
-        public Counter GetOrCreateCounter(string name, string type)
+        public Counter GetOrCreateCounter(string name)
         {
-            return this.counters.GetOrAdd(name, (n) => new Counter(n, type));
+            return this.counters.GetOrAdd(name, (n) => new Counter(n, Metrics.CounterTypeName));
+        }
+
+        public Counter GetOrCreateGauge(string name)
+        {
+            return this.counters.GetOrAdd(name, (n) => new Counter(n, Metrics.GaugeTypeName));
         }
 
         public Summary GetOrCreateSummary(string name)

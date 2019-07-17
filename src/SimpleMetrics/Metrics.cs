@@ -16,12 +16,12 @@ namespace SimpleMetrics
 
         public static Counter CreateCounter(string name)
         {
-            return DefaultRegistry.GetOrCreateCounter(name, CounterTypeName);
+            return DefaultRegistry.GetOrCreateCounter(name);
         }
 
         public static Counter CreateGauge(string name)
         {
-            return DefaultRegistry.GetOrCreateCounter(name, GaugeTypeName);
+            return DefaultRegistry.GetOrCreateGauge(name);
         }
 
         public static Summary CreateSummary(string name)

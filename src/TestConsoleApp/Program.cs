@@ -20,6 +20,9 @@ namespace TestConsoleApp
                 summary.Observe("inst", i * 2);
             }
 
+            var instance = DotNetStats.Register(Metrics.DefaultRegistry);
+            instance.UpdateMetrics();
+
             Metrics.DefaultRegistry.WriteTo(Console.Out);
         }
     }

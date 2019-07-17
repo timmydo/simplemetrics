@@ -44,7 +44,7 @@ namespace SimpleMetrics
                 this._samples.Add(new Sample { Value = sample.Value, Width = sample.Width, Delta = 0 });
                 i++;
 
-inserted:
+                inserted:
                 this.N += sample.Width;
                 r += sample.Width;
             }

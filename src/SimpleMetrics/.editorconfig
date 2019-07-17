@@ -103,7 +103,7 @@ csharp_style_inlined_variable_declaration = true:error
 ###############################
 
 # New line preferences
-csharp_new_line_before_open_brace = all:error
+csharp_new_line_before_open_brace = all
 csharp_new_line_before_else = true:error
 csharp_new_line_before_catch = true:error
 csharp_new_line_before_finally = true:error
