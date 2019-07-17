@@ -39,5 +39,4 @@ namespace SimpleMetrics
             return sw.ToString();
         }
     }
-
 }

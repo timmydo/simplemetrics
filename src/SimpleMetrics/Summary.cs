@@ -7,8 +7,6 @@ namespace SimpleMetrics
 {
     public sealed class Summary
     {
-        private const string QuantileLabel = "quantile";
-
         private readonly ConcurrentDictionary<string, SummaryChild> instances = new ConcurrentDictionary<string, SummaryChild>();
         private readonly SummaryChild defaultInstance;
 
@@ -38,10 +36,10 @@ namespace SimpleMetrics
         // Standard buffer size for collecting Summary observations
         public static readonly int DefBufCap = 500;
 
-        private readonly IReadOnlyList<QuantileEpsilonPair> _objectives;
-        private readonly TimeSpan _maxAge;
-        private readonly int _ageBuckets;
-        private readonly int _bufCap;
+        private readonly IReadOnlyList<QuantileEpsilonPair> objectives;
+        private readonly TimeSpan maxAge;
+        private readonly int ageBuckets;
+        private readonly int bufCap;
 
         public Summary(string name)
         {
@@ -51,26 +49,33 @@ namespace SimpleMetrics
             }
 
             this.Name = name;
-            this.defaultInstance = new SummaryChild(this);
+            this.objectives = DefObjectivesArray;
+            this.maxAge = DefMaxAge;
+            this.ageBuckets = DefAgeBuckets;
+            this.bufCap = DefBufCap;
 
-            _objectives = DefObjectivesArray;
-            _maxAge = DefMaxAge;
-            _ageBuckets = DefAgeBuckets;
-            _bufCap = DefBufCap;
-
-            if (_objectives.Count == 0)
+            if (this.objectives.Count == 0)
             {
-                _objectives = DefObjectivesArray;
+                this.objectives = DefObjectivesArray;
             }
 
-            if (_maxAge < TimeSpan.Zero)
-                throw new ArgumentException($"Illegal max age {_maxAge}");
+            if (this.maxAge < TimeSpan.Zero)
+            {
+                throw new ArgumentException($"Illegal max age {this.maxAge}");
+            }
 
-            if (_ageBuckets == 0)
-                _ageBuckets = DefAgeBuckets;
+            if (this.ageBuckets == 0)
+            {
+                this.ageBuckets = DefAgeBuckets;
+            }
 
-            if (_bufCap == 0)
-                _bufCap = DefBufCap;
+            if (this.bufCap == 0)
+            {
+                this.bufCap = DefBufCap;
+            }
+
+            // initialize this after the others as the child might try to reference the parent
+            this.defaultInstance = new SummaryChild(this);
         }
 
         public void Observe(double val)
@@ -92,7 +97,7 @@ namespace SimpleMetrics
         internal void Observe(string instance, double val, DateTime timestamp)
         {
             var child = this.instances.GetOrAdd(instance, (key) => new SummaryChild(this));
-            child.Observe(val);
+            child.Observe(val, timestamp);
         }
 
         public class SummaryChild
@@ -101,19 +106,19 @@ namespace SimpleMetrics
             // absolute error. If Objectives[q] = e, then the value reported
             // for q will be the φ-quantile value for some φ between q-e and q+e.
             // The default value is DefObjectives.
-            private IReadOnlyList<QuantileEpsilonPair> _objectives = new List<QuantileEpsilonPair>();
-            private readonly string _parentName;
-            private double[] _sortedObjectives;
-            private double _sum;
-            private uint _count;
-            private SampleBuffer _hotBuf;
-            private SampleBuffer _coldBuf;
-            private QuantileStream[] _streams;
-            private TimeSpan _streamDuration;
-            private QuantileStream _headStream;
-            private int _headStreamIdx;
-            private DateTime _headStreamExpTime;
-            private DateTime _hotBufExpTime;
+            private readonly IReadOnlyList<QuantileEpsilonPair> objectives = new List<QuantileEpsilonPair>();
+            private readonly string parentName;
+            private readonly double[] sortedObjectives;
+            private double sum;
+            private uint count;
+            private SampleBuffer hotBuf;
+            private SampleBuffer coldBuf;
+            private readonly QuantileStream[] streams;
+            private readonly TimeSpan streamDuration;
+            private QuantileStream headStream;
+            private int headStreamIdx;
+            private DateTime headStreamExpTime;
+            private DateTime hotBufExpTime;
 
             // Protects hotBuf and hotBufExpTime.
             private readonly object _bufLock = new object();
@@ -124,7 +129,7 @@ namespace SimpleMetrics
 
             // MaxAge defines the duration for which an observation stays relevant
             // for the summary. Must be positive. The default value is DefMaxAge.
-            private TimeSpan _maxAge;
+            private readonly TimeSpan maxAge;
 
             // AgeBuckets is the number of buckets used to exclude observations that
             // are older than MaxAge from the summary. A higher number has a
@@ -133,68 +138,70 @@ namespace SimpleMetrics
             // reduce the number of age buckets. With only one age bucket, you will
             // effectively see a complete reset of the summary each time MaxAge has
             // passed. The default value is DefAgeBuckets.
-            private int _ageBuckets;
+            private readonly int ageBuckets;
 
             // BufCap defines the default sample stream buffer size.  The default
             // value of DefBufCap should suffice for most uses. If there is a need
             // to increase the value, a multiple of 500 is recommended (because that
             // is the internal buffer size of the underlying package
             // "github.com/bmizerany/perks/quantile").      
-            private int _bufCap;
+            private readonly int bufCap;
 
             public SummaryChild(Summary parent)
             {
-                _parentName = parent.Name;
-                _objectives = parent._objectives;
-                _maxAge = parent._maxAge;
-                _ageBuckets = parent._ageBuckets;
-                _bufCap = parent._bufCap;
+                this.parentName = parent.Name;
+                this.objectives = parent.objectives;
+                this.maxAge = parent.maxAge;
+                this.ageBuckets = parent.ageBuckets;
+                this.bufCap = parent.bufCap;
 
-                _sortedObjectives = new double[_objectives.Count];
-                _hotBuf = new SampleBuffer(_bufCap);
-                _coldBuf = new SampleBuffer(_bufCap);
-                _streamDuration = new TimeSpan(_maxAge.Ticks / _ageBuckets);
-                _headStreamExpTime = DateTime.UtcNow.Add(_streamDuration);
-                _hotBufExpTime = _headStreamExpTime;
+                this.sortedObjectives = new double[this.objectives.Count];
+                this.hotBuf = new SampleBuffer(this.bufCap);
+                this.coldBuf = new SampleBuffer(this.bufCap);
+                this.streamDuration = new TimeSpan(this.maxAge.Ticks / this.ageBuckets);
+                this.headStreamExpTime = DateTime.UtcNow.Add(this.streamDuration);
+                this.hotBufExpTime = this.headStreamExpTime;
 
-                _streams = new QuantileStream[_ageBuckets];
-                for (var i = 0; i < _ageBuckets; i++)
+                this.streams = new QuantileStream[this.ageBuckets];
+                for (var i = 0; i < this.ageBuckets; i++)
                 {
-                    _streams[i] = QuantileStream.NewTargeted(_objectives);
+                    this.streams[i] = QuantileStream.NewTargeted(this.objectives);
                 }
 
-                _headStream = _streams[0];
+                this.headStream = this.streams[0];
 
-                for (var i = 0; i < _objectives.Count; i++)
+                for (var i = 0; i < this.objectives.Count; i++)
                 {
-                    _sortedObjectives[i] = _objectives[i].Quantile;
+                    this.sortedObjectives[i] = this.objectives[i].Quantile;
                 }
 
-                Array.Sort(_sortedObjectives);
+                Array.Sort(this.sortedObjectives);
             }
 
             public void Observe(double val)
             {
-                Observe(val, DateTime.UtcNow);
+                this.Observe(val, DateTime.UtcNow);
             }
 
             internal void Observe(double val, DateTime now)
             {
                 if (double.IsNaN(val))
-                    return;
-
-                lock (_bufLock)
                 {
-                    if (now > _hotBufExpTime)
+                    return;
+                }
+
+                lock (this._bufLock)
+                {
+                    if (now > this.hotBufExpTime)
                     {
-                        Flush(now);
+                        this.Flush(now);
                     }
 
-                    _hotBuf.Append(val);
+                    this.hotBuf.Append(val);
 
-                    if (_hotBuf.IsFull)
+                    if (this.hotBuf.IsFull)
                     {
-                        Flush(now);
+                        this.Flush(now);
                     }
                 }
 
@@ -206,23 +213,23 @@ namespace SimpleMetrics
 
                 double count;
                 double sum;
-                var values = new List<(double quantile, double value)>(_objectives.Count);
+                var values = new List<(double quantile, double value)>(this.objectives.Count);
 
-                lock (_bufLock)
+                lock (this._bufLock)
                 {
-                    lock (_lock)
+                    lock (this._lock)
                     {
                         // Swap bufs even if hotBuf is empty to set new hotBufExpTime.
-                        SwapBufs(now);
-                        FlushColdBuf();
+                        this.SwapBufs(now);
+                        this.FlushColdBuf();
 
-                        count = _count;
-                        sum = _sum;
+                        count = this.count;
+                        sum = this.sum;
 
-                        for (var i = 0; i < _sortedObjectives.Length; i++)
+                        for (var i = 0; i < this.sortedObjectives.Length; i++)
                         {
-                            var quantile = _sortedObjectives[i];
-                            var value = _headStream.Count == 0 ? double.NaN : _headStream.Query(quantile);
+                            var quantile = this.sortedObjectives[i];
+                            var value = this.headStream.Count == 0 ? double.NaN : this.headStream.Query(quantile);
 
                             values.Add((quantile, value));
                         }
@@ -231,7 +238,7 @@ namespace SimpleMetrics
 
 
                 // write the sum
-                tw.Write(_parentName);
+                tw.Write(this.parentName);
                 if (instance == null)
                 {
                     tw.Write("_sum ");
@@ -248,7 +255,7 @@ namespace SimpleMetrics
 
 
                 // write the count
-                tw.Write(_parentName);
+                tw.Write(this.parentName);
                 if (instance == null)
                 {
                     tw.Write("_count ");
@@ -266,7 +273,7 @@ namespace SimpleMetrics
                 // write the quantiles for this instance
                 for (var i = 0; i < values.Count; i++)
                 {
-                    tw.Write(_parentName);
+                    tw.Write(this.parentName);
                     if (instance == null)
                     {
                         tw.Write("{");
@@ -289,68 +296,70 @@ namespace SimpleMetrics
             // Flush needs bufMtx locked.
             private void Flush(DateTime now)
             {
-                lock (_lock)
+                lock (this._lock)
                 {
-                    SwapBufs(now);
+                    this.SwapBufs(now);
 
                     // Go version flushes on a separate goroutine, but doing this on another
                     // thread actually makes the benchmark tests slower in .net
-                    FlushColdBuf();
+                    this.FlushColdBuf();
                 }
             }
 
             // SwapBufs needs mtx AND bufMtx locked, coldBuf must be empty.
             private void SwapBufs(DateTime now)
             {
-                if (!_coldBuf.IsEmpty)
+                if (!this.coldBuf.IsEmpty)
                 {
                     throw new InvalidOperationException("coldBuf is not empty");
                 }
 
-                var temp = _hotBuf;
-                _hotBuf = _coldBuf;
-                _coldBuf = temp;
+                var temp = this.hotBuf;
+                this.hotBuf = this.coldBuf;
+                this.coldBuf = temp;
 
                 // hotBuf is now empty and gets new expiration set.
-                while (now > _hotBufExpTime)
+                while (now > this.hotBufExpTime)
                 {
-                    _hotBufExpTime = _hotBufExpTime.Add(_streamDuration);
+                    this.hotBufExpTime = this.hotBufExpTime.Add(this.streamDuration);
                 }
             }
 
             // FlushColdBuf needs mtx locked. 
             private void FlushColdBuf()
             {
-                for (var bufIdx = 0; bufIdx < _coldBuf.Position; bufIdx++)
+                for (var bufIdx = 0; bufIdx < this.coldBuf.Position; bufIdx++)
                 {
-                    var value = _coldBuf[bufIdx];
+                    var value = this.coldBuf[bufIdx];
 
-                    for (var streamIdx = 0; streamIdx < _streams.Length; streamIdx++)
+                    for (var streamIdx = 0; streamIdx < this.streams.Length; streamIdx++)
                     {
-                        _streams[streamIdx].Insert(value);
+                        this.streams[streamIdx].Insert(value);
                     }
 
-                    _count++;
-                    _sum += value;
+                    this.count++;
+                    this.sum += value;
                 }
 
-                _coldBuf.Reset();
-                MaybeRotateStreams();
+                this.coldBuf.Reset();
+                this.MaybeRotateStreams();
             }
 
             // MaybeRotateStreams needs mtx AND bufMtx locked.
             private void MaybeRotateStreams()
             {
-                while (!_hotBufExpTime.Equals(_headStreamExpTime))
+                while (!this.hotBufExpTime.Equals(this.headStreamExpTime))
                 {
-                    _headStream.Reset();
-                    _headStreamIdx++;
+                    this.headStream.Reset();
+                    this.headStreamIdx++;
 
-                    if (_headStreamIdx >= _streams.Length)
-                        _headStreamIdx = 0;
+                    if (this.headStreamIdx >= this.streams.Length)
+                    {
+                        this.headStreamIdx = 0;
+                    }
 
-                    _headStream = _streams[_headStreamIdx];
-                    _headStreamExpTime = _headStreamExpTime.Add(_streamDuration);
+                    this.headStream = this.streams[this.headStreamIdx];
+                    this.headStreamExpTime = this.headStreamExpTime.Add(this.streamDuration);
                 }
             }
         }

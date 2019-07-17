@@ -29,9 +29,9 @@ namespace SimpleMetrics
 
         private QuantileStream(SampleStream sampleStream, List<Sample> samples, bool sorted)
         {
-            _sampleStream = sampleStream;
-            _samples = samples;
-            _sorted = sorted;
+            this._sampleStream = sampleStream;
+            this._samples = samples;
+            this._sorted = sorted;
         }
 
         public static QuantileStream NewStream(Invariant invariant)
@@ -88,12 +88,18 @@ namespace SimpleMetrics
 
                     double f;
                     if (target.Quantile * stream.N <= r)
+                    {
                         f = (2 * target.Epsilon * r) / target.Quantile;
+                    }
                     else
+                    {
                         f = (2 * target.Epsilon * (stream.N - r)) / (1 - target.Quantile);
+                    }
 
                     if (f < m)
+                    {
                         m = f;
+                    }
                 }
 
                 return m;
@@ -102,30 +108,32 @@ namespace SimpleMetrics
 
         public void Insert(double value)
         {
-            Insert(new Sample { Value = value, Width = 1 });
+            this.Insert(new Sample { Value = value, Width = 1 });
         }
 
         private void Insert(Sample sample)
         {
-            _samples.Add(sample);
-            _sorted = false;
-            if (_samples.Count == _samples.Capacity)
-                Flush();
+            this._samples.Add(sample);
+            this._sorted = false;
+            if (this._samples.Count == this._samples.Capacity)
+            {
+                this.Flush();
+            }
         }
 
         private void Flush()
         {
-            MaybeSort();
-            _sampleStream.Merge(_samples);
-            _samples.Clear();
+            this.MaybeSort();
+            this._sampleStream.Merge(this._samples);
+            this._samples.Clear();
         }
 
         private void MaybeSort()
         {
-            if (!_sorted)
+            if (!this._sorted)
             {
-                _sorted = true;
-                _samples.Sort(SampleComparison);
+                this._sorted = true;
+                this._samples.Sort(SampleComparison);
             }
         }
 
@@ -136,42 +144,46 @@ namespace SimpleMetrics
 
         public void Reset()
         {
-            _sampleStream.Reset();
-            _samples.Clear();
+            this._sampleStream.Reset();
+            this._samples.Clear();
         }
 
         // Count returns the total number of samples observed in the stream since initialization.
-        public int Count => _samples.Count + _sampleStream.Count;
+        public int Count => this._samples.Count + this._sampleStream.Count;
 
-        public int SamplesCount => _samples.Count;
+        public int SamplesCount => this._samples.Count;
 
-        public bool Flushed => _sampleStream.SampleCount > 0;
+        public bool Flushed => this._sampleStream.SampleCount > 0;
 
         // Query returns the computed qth percentiles value. If s was created with
         // NewTargeted, and q is not in the set of quantiles provided a priori, Query
         // will return an unspecified result.
         public double Query(double q)
         {
-            if (!Flushed)
+            if (!this.Flushed)
             {
                 // Fast path when there hasn't been enough data for a flush;
                 // this also yields better accuracy for small sets of data.
 
-                var l = _samples.Count;
+                var l = this._samples.Count;
 
                 if (l == 0)
+                {
                     return 0;
+                }
 
                 var i = (int)(l * q);
                 if (i > 0)
+                {
                     i -= 1;
+                }
 
-                MaybeSort();
-                return _samples[i].Value;
+                this.MaybeSort();
+                return this._samples[i].Value;
             }
 
-            Flush();
-            return _sampleStream.Query(q);
+            this.Flush();
+            return this._sampleStream.Query(q);
         }
     }
 }

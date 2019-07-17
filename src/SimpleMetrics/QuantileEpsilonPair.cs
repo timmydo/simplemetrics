@@ -4,8 +4,8 @@
     {
         public QuantileEpsilonPair(double quantile, double epsilon)
         {
-            Quantile = quantile;
-            Epsilon = epsilon;
+            this.Quantile = quantile;
+            this.Epsilon = epsilon;
         }
 
         public double Quantile { get; }

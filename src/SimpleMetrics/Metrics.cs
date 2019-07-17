@@ -2,7 +2,7 @@
 
 namespace SimpleMetrics
 {
-    static public class Metrics
+    public static class Metrics
     {
         internal static readonly Regex ValidNameRegex = new Regex(@"[a-zA-Z_:][a-zA-Z0-9_:]*", RegexOptions.Compiled);
 
