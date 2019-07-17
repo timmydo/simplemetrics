@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MyMetrics
+namespace SimpleMetrics
 {
     internal class SampleBuffer
     {

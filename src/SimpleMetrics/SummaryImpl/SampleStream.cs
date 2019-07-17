@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace MyMetrics
+namespace SimpleMetrics
 {
     internal class SampleStream
     {
@@ -44,7 +44,7 @@ namespace MyMetrics
                 _samples.Add(new Sample { Value = sample.Value, Width = sample.Width, Delta = 0 });
                 i++;
 
-            inserted:
+inserted:
                 N += sample.Width;
                 r += sample.Width;
             }

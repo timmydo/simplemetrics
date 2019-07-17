@@ -1,4 +1,4 @@
-﻿namespace MyMetrics
+﻿namespace SimpleMetrics
 {
     public struct QuantileEpsilonPair
     {

@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Threading;
 
-namespace MyMetrics
+namespace SimpleMetrics
 {
     internal struct ThreadSafeDouble
     {

@@ -1,4 +1,4 @@
-﻿namespace MyMetrics
+﻿namespace SimpleMetrics
 {
     // Sample holds an observed value and meta information for compression. 
     internal struct Sample

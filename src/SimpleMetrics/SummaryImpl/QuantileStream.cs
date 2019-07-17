@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace MyMetrics
+namespace SimpleMetrics
 {
     // Ported from https://github.com/beorn7/perks/blob/master/quantile/stream.go
 
