@@ -5,16 +5,11 @@ using System.Threading;
 namespace SimpleMetrics
 {
     // Keep this boxed so we can store it as a value in a concurrrent dictionary
-    internal class ThreadSafeDouble
+    internal struct ThreadSafeDoubleStruct
     {
         private long _value;
 
-        public ThreadSafeDouble()
-            : this(0.0)
-        {
-        }
-
-        public ThreadSafeDouble(double value)
+        public ThreadSafeDoubleStruct(double value)
         {
             this._value = BitConverter.DoubleToInt64Bits(value);
         }

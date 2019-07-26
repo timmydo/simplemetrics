@@ -72,14 +72,14 @@ namespace SimpleMetrics
         {
             tw.Write("# TYPE ");
             tw.Write(this.Name);
-            tw.Write(" ");
+            tw.Write(' ');
             tw.Write(this.typeName);
-            tw.WriteLine();
+            tw.Write('\n');
 
             tw.Write(this.Name);
-            tw.Write(" ");
+            tw.Write(' ');
             tw.Write(this.Value);
-            tw.WriteLine();
+            tw.Write('\n');
 
             foreach (var item in this.instances)
             {
@@ -88,7 +88,7 @@ namespace SimpleMetrics
                 tw.Write(item.Key);
                 tw.Write("\"} ");
                 tw.Write(item.Value);
-                tw.WriteLine();
+                tw.Write('\n');
             }
         }
     }

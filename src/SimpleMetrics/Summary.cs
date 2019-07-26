@@ -251,7 +251,7 @@ namespace SimpleMetrics
                 }
 
                 tw.Write(sum);
-                tw.WriteLine();
+                tw.Write('\n');
 
 
                 // write the count
@@ -268,7 +268,7 @@ namespace SimpleMetrics
                 }
 
                 tw.Write(count);
-                tw.WriteLine();
+                tw.Write('\n');
 
                 // write the quantiles for this instance
                 for (var i = 0; i < values.Count; i++)
@@ -289,7 +289,7 @@ namespace SimpleMetrics
                     tw.Write(values[i].quantile);
                     tw.Write("\"} ");
                     tw.Write(values[i].value);
-                    tw.WriteLine();
+                    tw.Write('\n');
                 }
             }
 
@@ -369,9 +369,9 @@ namespace SimpleMetrics
         {
             tw.Write("# TYPE ");
             tw.Write(this.Name);
-            tw.Write(" ");
+            tw.Write(' ');
             tw.Write(Metrics.SummaryTypeName);
-            tw.WriteLine();
+            tw.Write('\n');
 
             this.defaultInstance.WriteTo(tw, null);
             foreach (var instance in this.instances)

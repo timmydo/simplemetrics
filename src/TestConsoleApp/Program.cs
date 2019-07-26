@@ -20,6 +20,13 @@ namespace TestConsoleApp
                 summary.Observe("inst", i * 2);
             }
 
+            var histogram = Metrics.CreateHistogram("my_histogram", HistogramBuckets.SampleExponentialBuckets);
+            for (int i = 0; i < 100; i++)
+            {
+                histogram.Observe(i * 0.004);
+                histogram.Observe("inst", i * 2);
+            }
+
             var instance = DotNetStats.Register(Metrics.DefaultRegistry);
             instance.UpdateMetrics();
 
