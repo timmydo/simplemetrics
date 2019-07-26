@@ -28,5 +28,11 @@ namespace SimpleMetrics
         {
             return DefaultRegistry.GetOrCreateSummary(name);
         }
+
+        public static Histogram CreateHistogram(string name, double[] buckets)
+        {
+            return DefaultRegistry.GetOrCreateHistogram(name, buckets);
+        }
+
     }
 }

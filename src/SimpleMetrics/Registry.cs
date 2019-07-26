@@ -9,6 +9,8 @@ namespace SimpleMetrics
 
         private readonly ConcurrentDictionary<string, Summary> summaries = new ConcurrentDictionary<string, Summary>();
 
+        private readonly ConcurrentDictionary<string, Histogram> histograms = new ConcurrentDictionary<string, Histogram>();
+
         public Counter GetOrCreateCounter(string name)
         {
             return this.counters.GetOrAdd(name, (n) => new Counter(n, Metrics.CounterTypeName));
@@ -24,6 +26,11 @@ namespace SimpleMetrics
             return this.summaries.GetOrAdd(name, (n) => new Summary(n));
         }
 
+        public Histogram GetOrCreateHistogram(string name, double[] buckets)
+        {
+            return this.histograms.GetOrAdd(name, (n) => new Histogram(n, buckets));
+        }
+
         public void WriteTo(TextWriter tw)
         {
             foreach (var item in this.counters)
@@ -32,6 +39,11 @@ namespace SimpleMetrics
             }
 
             foreach (var item in this.summaries)
+            {
+                item.Value.WriteTo(tw);
+            }
+
+            foreach (var item in this.histograms)
             {
                 item.Value.WriteTo(tw);
             }
