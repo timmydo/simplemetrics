@@ -53,14 +53,28 @@ namespace SimpleMetrics
 
         public void Increment(string instance, double amount)
         {
-            var val = this.instances.GetOrAdd(instance, (iname) => new ThreadSafeDouble(0.0));
-            val.Add(amount);
+            if (instance == null)
+            {
+                this.Increment(amount);
+            }
+            else
+            {
+                var val = this.instances.GetOrAdd(instance, (iname) => new ThreadSafeDouble(0.0));
+                val.Add(amount);
+            }
         }
 
         public void Set(string instance, double amount)
         {
-            var c = this.instances.GetOrAdd(instance, (iname) => new ThreadSafeDouble(0.0));
-            c.Value = amount;
+            if (instance == null)
+            {
+                this.Set(amount);
+            }
+            else
+            {
+                var c = this.instances.GetOrAdd(instance, (iname) => new ThreadSafeDouble(0.0));
+                c.Value = amount;
+            }
         }
 
         public void Set(double amount)

@@ -49,8 +49,15 @@ namespace SimpleMetrics
 
         public void Observe(string instance, double amount)
         {
-            var val = this.instances.GetOrAdd(instance, (iname) => new HistogramChild(this.bucketIntervals));
-            val.Observe(amount);
+            if (instance == null)
+            {
+                this.Observe(amount);
+            }
+            else
+            {
+                var val = this.instances.GetOrAdd(instance, (iname) => new HistogramChild(this.bucketIntervals));
+                val.Observe(amount);
+            }
         }
 
         public void WriteTo(TextWriter tw)
