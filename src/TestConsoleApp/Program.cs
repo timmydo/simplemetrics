@@ -12,6 +12,7 @@ namespace TestConsoleApp
             counter.Increment(2);
             counter.Increment("def");
             counter.Increment("ghi", 5000);
+            counter.Increment(null, 5000);
 
             var summary = Metrics.CreateSummary("my_summary");
             for (int i = 0; i < 100; i++)

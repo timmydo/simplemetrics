@@ -90,14 +90,28 @@ namespace SimpleMetrics
 
         public void Observe(string instance, double val)
         {
-            var child = this.instances.GetOrAdd(instance, (key) => new SummaryChild(this));
-            child.Observe(val);
+            if (instance == null)
+            {
+                this.defaultInstance.Observe(val);
+            }
+            else
+            {
+                var child = this.instances.GetOrAdd(instance, (key) => new SummaryChild(this));
+                child.Observe(val);
+            }
         }
 
         internal void Observe(string instance, double val, DateTime timestamp)
         {
-            var child = this.instances.GetOrAdd(instance, (key) => new SummaryChild(this));
-            child.Observe(val, timestamp);
+            if (instance == null)
+            {
+                this.defaultInstance.Observe(val, timestamp);
+            }
+            else
+            {
+                var child = this.instances.GetOrAdd(instance, (key) => new SummaryChild(this));
+                child.Observe(val, timestamp);
+            }
         }
 
         public class SummaryChild
