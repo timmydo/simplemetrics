@@ -260,7 +260,7 @@ namespace SimpleMetrics
                 else
                 {
                     tw.Write("_sum{i=\"");
-                    tw.Write(instance);
+                    tw.Write(Metrics.EscapeInstanceName(instance));
                     tw.Write("\"} ");
                 }
 
@@ -277,7 +277,7 @@ namespace SimpleMetrics
                 else
                 {
                     tw.Write("_count{i=\"");
-                    tw.Write(instance);
+                    tw.Write(Metrics.EscapeInstanceName(instance));
                     tw.Write("\"} ");
                 }
 
@@ -295,7 +295,7 @@ namespace SimpleMetrics
                     else
                     {
                         tw.Write("{i=\"");
-                        tw.Write(instance);
+                        tw.Write(Metrics.EscapeInstanceName(instance));
                         tw.Write(",");
                     }
 

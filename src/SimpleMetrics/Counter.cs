@@ -99,7 +99,7 @@ namespace SimpleMetrics
             {
                 tw.Write(this.Name);
                 tw.Write("{i=\"");
-                tw.Write(item.Key);
+                tw.Write(Metrics.EscapeInstanceName(item.Key));
                 tw.Write("\"} ");
                 tw.Write(item.Value);
                 tw.Write('\n');

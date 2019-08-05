@@ -147,14 +147,14 @@ namespace SimpleMetrics
                 {
                     tw.Write(metric);
                     tw.Write("_sum{i=\"");
-                    tw.Write(instance);
+                    tw.Write(Metrics.EscapeInstanceName(instance));
                     tw.Write("\"} ");
                     tw.Write(this.sum.Value);
                     tw.Write('\n');
 
                     tw.Write(metric);
                     tw.Write("_count{i=\"");
-                    tw.Write(instance);
+                    tw.Write(Metrics.EscapeInstanceName(instance));
                     tw.Write("\"} ");
                     tw.Write(this.count.Value);
                     tw.Write('\n');
@@ -163,7 +163,7 @@ namespace SimpleMetrics
                     {
                         tw.Write(metric);
                         tw.Write("_bucket{i=\"");
-                        tw.Write(instance);
+                        tw.Write(Metrics.EscapeInstanceName(instance));
                         tw.Write("\",le=\"");
                         tw.Write(this.bucketIntervals[i]);
                         tw.Write("\"} ");
@@ -173,7 +173,7 @@ namespace SimpleMetrics
 
                     tw.Write(metric);
                     tw.Write("_bucket{i=\"");
-                    tw.Write(instance);
+                    tw.Write(Metrics.EscapeInstanceName(instance));
                     tw.Write("\",le=\"+Inf\"} ");
                     tw.Write(this.values[this.bucketIntervals.Length].Value);
                     tw.Write('\n');
