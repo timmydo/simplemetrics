@@ -34,5 +34,9 @@ namespace SimpleMetrics
             return DefaultRegistry.GetOrCreateHistogram(name, buckets);
         }
 
+        public static string EscapeInstanceName(string name)
+        {
+            return name.Replace('\\', '_').Replace('"', '_').Replace('\n', '_');
+        }
     }
 }
